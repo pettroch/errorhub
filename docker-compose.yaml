@@ -1,0 +1,83 @@
+version: "3.9"
+services:
+
+  # sqlite:
+  #   image: nouchka/sqlite3:latest
+  #   restart: always
+  #   # ports:
+  #   #   - "5432:5432"
+  #   volumes:
+  #     - ./data/db:/root/db
+  #   environment:
+  #     - SQLITE3_DB=./backend/database/database.db
+
+  backend:
+    build:
+      dockerfile: ./docker/back/Dockerfile
+    expose:
+      - 5000
+    ports:
+      - "5000:5000"      
+    networks:
+      - weber
+    volumes:
+      - ./backend:/backend
+    command: python3.12 app.py
+    labels:
+      - 'traefik.enable=true'
+    restart: always
+    # depends_on:
+    #   - sqlite
+
+  frontend:
+    build:
+      dockerfile: ./docker/front/Dockerfile
+    expose:
+      - 5005
+    ports:
+      - '5005:5005'      
+    networks:
+      - weber
+    volumes:
+      - ./frontend:/usr/src/frontend
+    command: npm run dev
+    labels:
+      - 'traefik.enable=true'
+    restart: always
+
+  # traefik:
+  #   image: traefik:2.9
+  #   container_name: traefik
+  #   command:
+  #     # - --accesslog=false
+  #     - --api.insecure=true
+  #     - --entryPoints.web.address=:6000
+  #     # - --entryPoints.websecure.address=:5443
+  #     # - --entryPoints.websecure.http.tls.certResolver=leresolver
+  #     # - --certificatesresolvers.leresolver.acme.email=admin@example.com
+  #     # - --certificatesresolvers.leresolver.acme.storage=acme.json
+  #     # - --certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web
+  #     - --providers.docker=true
+  #     - --providers.docker.exposedByDefault=false
+  #     - --providers.docker.network=weber
+  #     # - --entrypoints.web.http.redirections.entryPoint.to=websecure
+  #     # - --entrypoints.web.http.redirections.entryPoint.scheme=http
+  #     # - --entrypoints.web.http.redirections.entrypoint.permanent=true
+  #   networks:
+  #     - weber
+  #   ports:
+  #     - 6000:6000
+  #   # expose:
+  #   #   - 6000
+  #     # - 5443:5443
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   restart: always
+
+
+volumes:
+  db_data:
+
+networks:
+  weber:
+    external: true
